@@ -31,7 +31,7 @@ class Buchung(models.Model):
     def mark_as_billed(self):
         self.abrechnungsstatus = 'abgerechnet'
         self.save()
-        # Log the change here
+        # ADD LOGGING
 
     def apply_credit(self):
         self.abrechnungsstatus = 'gutgeschrieben'
