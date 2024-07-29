@@ -1,5 +1,7 @@
 # Instructions
 
+venv\Scripts\activate
+
 # You are tasked with creating a basic test project in Django to facilitate automated invoice generation for a channel manager. The goal is to streamline the billing process for bookings, specifically for camping sites. Here are the detailed requirements:
 
     Basic Setup:
