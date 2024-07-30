@@ -1,3 +1,8 @@
+# TODO
+- Logging: Ermögliche die Änderung desAbrechnungsstatus von "offen"auf "storniert", "abgerechnet" unddie Änderung des Prov. Satz.Logge die Änderung mit Datumund Benutzer
+
+- Commission: Ermittle den Provisionssatz jeBuchung in Abhängigkeit vomChannel und vom Vertrag desPlatzes
+
 # Instructions
 
 venv\Scripts\activate

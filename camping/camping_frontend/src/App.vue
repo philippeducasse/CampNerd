@@ -1,25 +1,22 @@
 <template>
-  <BookingList />
+  <div id="app">
+    <BillingView />
+    <BookingList />
+  </div>
 </template>
 
 <script>
-import BookingList from './components/BookingList.vue'
+import BillingView from './components/BillingView.vue';
+import BookingList from './components/BookingList.vue';
 
 export default {
   name: 'App',
   components: {
+    BillingView,
     BookingList
-  }
-}
+  },
+};
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
 </style>

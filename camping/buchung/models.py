@@ -1,5 +1,8 @@
 from django.db import models
 from campingplatz.models import Campingplatz
+from django.contrib.auth.models import User
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 
 class Buchung(models.Model):
     STATUS_CHOICES = [
@@ -32,7 +35,25 @@ class Buchung(models.Model):
         self.abrechnungsstatus = 'abgerechnet'
         self.save()
         # ADD LOGGING
+        #For this purpose, the changed values, the date and the operator are saved.
 
     def apply_credit(self):
         self.abrechnungsstatus = 'gutgeschrieben'
         self.save()
+
+
+class ChangeLog(models.Model):
+    booking = models.ForeignKey(Buchung, on_delete=models.CASCADE)
+    user = models.CharField(max_length=255)
+    field_changed = models.CharField(max_length=255)
+    old_value = models.CharField(max_length=255)
+    new_value = models.CharField(max_length=255)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.booking.booking_number} - {self.field_changed}"
+    
+    @require_http_methods(["GET"])
+    def view_logs(request, pk):
+        logs = ChangeLog.objects.filter(booking_id=pk).values()
+        return JsonResponse(list(logs), safe=False)

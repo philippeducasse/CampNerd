@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-&3smd8j2m42q4kpt(_zyx7p-_@mu)!(b50)%q30qy08fi3p9o#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'campingplatz',
     'buchung',
+    #'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    #'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -58,7 +60,7 @@ ROOT_URLCONF = 'camping.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'camping', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,3 +128,5 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'camping', 'camping_frontend', 'dist'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
