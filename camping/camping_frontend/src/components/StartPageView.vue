@@ -15,7 +15,7 @@
       <button type="submit">Go to Booking View</button>
     </form>
   </div>
-  <button @click="goToBookingView">Show all Bookings</button>
+  <button @click="goToAllBookings">Show all Bookings</button>
 </template>
 
 <script>
@@ -61,20 +61,20 @@ export default {
         });
     },
     goToBookingView() {
-      console.log('Navigating to bookings view with parameters:', {
-        camping_site: this.campingSite,
-        start_date: this.startDate,
-        end_date: this.endDate
-      });
+      let path = '/bookings';
+      const query = {};
+      if (this.campingSite) query.camping_site = this.campingSite;
+      if (this.startDate) query.start_date = this.startDate;
+      if (this.endDate) query.end_date = this.endDate;
+
       this.$router.push({
-        path: '/bookings',
-        query: {
-          camping_site: this.campingSite,
-          start_date: this.startDate,
-          end_date: this.endDate
-        }
+        path: path,
+        query: query
       });
-    }
+    },
+    goToAllBookings() {
+      this.$router.push('/bookings');
+    },
   }
 };
 </script>

@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.views import View
@@ -9,11 +10,37 @@ from datetime import datetime
 from decimal import Decimal
 from .models import Campingplatz
 from buchung.models import Buchung, ChangeLog
-import json
 import random
 
+def log_change(user, booking, field_changed, old_value, new_value):
+    ChangeLog.objects.create(
+        booking=booking,
+        user=user,
+        field_changed=field_changed,
+        old_value=old_value,
+        new_value=new_value,
+        date=datetime.now()
+    )
+
+class BaseInvoiceView(View):
+    def generate_invoice_data(self, booking):
+        return {
+            'booking_id': str(booking.id),
+            'booking_number': booking.booking_number,
+            'price': float(booking.price),
+            'commission_rate': float(booking.commission_rate) if booking.commission_rate else None,
+            'total_commission': float(booking.total_commission) if booking.total_commission else None,
+            'customer_name': booking.campingplatz.name,
+            'departure_date': booking.end_date.strftime('%Y-%m-%d'),
+        }
+
+    def send_invoice_to_api(self, invoice_data):
+        # Implement the actual API call to the billing software here
+        print(f"Sending invoice data to API: {json.dumps(invoice_data)}")
+        return True
+
 class BookingListView(View):
-      def get(self, request):
+    def get(self, request):
         camping_site_id = request.GET.get('camping_site')
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
@@ -83,22 +110,12 @@ def update_commission_rate(request, pk):
     log_change('test_user', booking, 'commission_rate', str(old_value), str(new_value))
     return JsonResponse({'status': 'success', 'message': 'Commission rate updated'})
 
-def log_change(user, booking, field_changed, old_value, new_value):
-    ChangeLog.objects.create(
-        booking=booking,
-        user=user,
-        field_changed=field_changed,
-        old_value=old_value,
-        new_value=new_value,
-        date=datetime.now()
-    )
-
 class CampingSitesView(View):
     def get(self, request):
         camping_sites = list(Campingplatz.objects.all().values())
         return JsonResponse(camping_sites, safe=False)
 
-class BillingView(View):
+class BillingView(BaseInvoiceView):
     @method_decorator(login_required)
     def post(self, request):
         data = json.loads(request.body)
@@ -124,7 +141,7 @@ class BillingView(View):
                 })
         # Here you would send billing_items to the invoicing API
         # For now, let's just simulate success
-        if self.send_to_invoicing_api(billing_items):
+        if self.send_invoice_to_api(billing_items):
             for booking in bookings:
                 if booking.abrechnungsstatus == 'offen':
                     old_value = booking.abrechnungsstatus
@@ -138,13 +155,8 @@ class BillingView(View):
         # Implement your logic to determine the commission rate
         return random.uniform(0.01, 0.05)  # For example purposes
 
-    def send_to_invoicing_api(self, billing_items):
-        # Implement your API call to the invoicing service
-        return True  # Simulating a successful API call
-    
-
 @method_decorator(csrf_exempt, name='dispatch')
-class CreateInvoiceView(View):
+class CreateInvoiceView(BaseInvoiceView):
     def post(self, request, pk):
         booking = get_object_or_404(Buchung, pk=pk)
         invoice_data = self.generate_invoice_data(booking)
@@ -159,21 +171,55 @@ class CreateInvoiceView(View):
         else:
             return JsonResponse({'status': 'error', 'message': 'Failed to create and send invoice'})
 
-    def generate_invoice_data(self, booking):
-        # Generate the invoice data in the required export format
-        return {
-            'booking_id': str(booking.id),
-            'booking_number': booking.booking_number,
-            'price': float(booking.price),
-            'commission_rate': float(booking.commission_rate) if booking.commission_rate is not None else None,
-            'total_commission': float(booking.total_commission) if booking.total_commission is not None else None,
-            'customer_name': f"{booking.campingplatz.name}",
-            'departure_date': booking.end_date.strftime('%Y-%m-%d'),
-            # Add other required fields
-        }
+class GenerateInvoicesView(BaseInvoiceView):
+    def post(self, request):
+        data = json.loads(request.body)
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
 
-    def send_invoice_to_api(self, invoice_data):
-        # Implement the actual API call to the billing software here
-        # Simulating a successful API call
-        print(f"Sending invoice data to API: {json.dumps(invoice_data)}")
-        return True
+        bookings = Buchung.objects.filter(end_date__gte=start_date, end_date__lte=end_date, abrechnungsstatus='offen')
+        
+        invoices = []
+        for booking in bookings:
+            invoice_data = self.generate_invoice_data(booking)
+            response = self.send_invoice_to_api(invoice_data)
+            if response:
+                booking.abrechnungsstatus = 'abgerechnet'
+                booking.save()
+                invoices.append(invoice_data)
+        
+        return JsonResponse({'status': 'success', 'message': 'Invoices generated successfully', 'invoices': invoices})
+
+class CreateCreditsView(View):
+    def post(self, request):
+        bookings = Buchung.objects.filter(abrechnungsstatus='gutschreiben')
+        
+        for booking in bookings:
+            booking.abrechnungsstatus = 'gutschreiben'  # Set the status to credited
+            booking.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Credits created successfully'})
+
+class UnsentInvoicesView(View):
+    def get(self, request):
+        # Fetch invoices that were created but not sent
+        unsent_invoices = []
+        # Logic to get unsent invoices from your system
+        return JsonResponse({'invoices': unsent_invoices})
+
+class SendInvoiceView(BaseInvoiceView):
+    def post(self, request, pk):
+        invoice = get_object_or_404(Buchung, pk=pk)
+        invoice_data = self.generate_invoice_data(invoice)
+        response = self.send_invoice_to_api(invoice_data)
+        
+        if response:
+            return JsonResponse({'status': 'success', 'message': 'Invoice sent successfully'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Failed to send invoice'})

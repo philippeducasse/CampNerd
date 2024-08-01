@@ -12,4 +12,8 @@ urlpatterns = [
     path('bookings/<int:pk>/credit/', views.credit_booking, name='credit_booking'),
     path('bookings/<int:pk>/update_commission_rate/', views.update_commission_rate, name='update_commission_rate'),
     path('bookings/<int:pk>/logs/', ChangeLog.view_logs, name='view_logs'),
+    path('generate_invoices/', views.GenerateInvoicesView.as_view(), name='generate_invoices'),
+    path('create_credits/', views.CreateCreditsView.as_view(), name='create_credits'),
+    path('unsent_invoices/', views.UnsentInvoicesView.as_view(), name='unsent_invoices'),
+    path('send_invoice/<int:pk>/', views.SendInvoiceView.as_view(), name='send_invoice'),
 ]
