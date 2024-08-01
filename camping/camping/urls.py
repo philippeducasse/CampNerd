@@ -22,5 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('campingplatz.urls')),
     path('', IndexView.as_view(), name='index'),
-    path('<path:resource>', IndexView.as_view()),
+    # path('<path:resource>', IndexView.as_view()),
 ]

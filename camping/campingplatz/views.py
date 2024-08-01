@@ -4,6 +4,7 @@ from django.views import View
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from decimal import Decimal
 from .models import Campingplatz
@@ -12,8 +13,32 @@ import json
 import random
 
 class BookingListView(View):
-    def get(self, request):
-        bookings = Buchung.objects.all().values()
+      def get(self, request):
+        camping_site_id = request.GET.get('camping_site')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+
+        # Log the received parameters
+        print(f"Received parameters: camping_site_id={camping_site_id}, start_date={start_date}, end_date={end_date}")
+
+        if camping_site_id and start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d')
+                end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            except ValueError:
+                return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+            bookings = Buchung.objects.filter(
+                campingplatz_id=camping_site_id,
+                start_date__gte=start_date,
+                end_date__lte=end_date
+            ).values()
+        else:
+            bookings = Buchung.objects.all().values()
+
+        # Log the number of bookings found
+        print(f"Found {len(bookings)} bookings")
+
         return JsonResponse(list(bookings), safe=False)
 
 @require_http_methods(["POST"])
@@ -91,10 +116,11 @@ class BillingView(View):
         for booking in bookings:
             if booking.abrechnungsstatus == 'offen':
                 commission_rate = self.get_commission_rate(booking)
-                commission = booking.price * Decimal(commission_rate)  # Ensure consistent use of Decimal
+                booking.commission_rate = commission_rate  
+                booking.save() 
                 billing_items.append({
                     'booking_id': booking.id,
-                    'amount': commission
+                    'amount': booking.total_commission
                 })
         # Here you would send billing_items to the invoicing API
         # For now, let's just simulate success
@@ -115,3 +141,39 @@ class BillingView(View):
     def send_to_invoicing_api(self, billing_items):
         # Implement your API call to the invoicing service
         return True  # Simulating a successful API call
+    
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateInvoiceView(View):
+    def post(self, request, pk):
+        booking = get_object_or_404(Buchung, pk=pk)
+        invoice_data = self.generate_invoice_data(booking)
+
+        # Simulate sending the invoice data to the billing software API
+        response = self.send_invoice_to_api(invoice_data)
+
+        if response:
+            booking.abrechnungsstatus = 'abgerechnet'
+            booking.save()
+            return JsonResponse({'status': 'success', 'message': 'Invoice created and sent successfully'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Failed to create and send invoice'})
+
+    def generate_invoice_data(self, booking):
+        # Generate the invoice data in the required export format
+        return {
+            'booking_id': str(booking.id),
+            'booking_number': booking.booking_number,
+            'price': float(booking.price),
+            'commission_rate': float(booking.commission_rate) if booking.commission_rate is not None else None,
+            'total_commission': float(booking.total_commission) if booking.total_commission is not None else None,
+            'customer_name': f"{booking.campingplatz.name}",
+            'departure_date': booking.end_date.strftime('%Y-%m-%d'),
+            # Add other required fields
+        }
+
+    def send_invoice_to_api(self, invoice_data):
+        # Implement the actual API call to the billing software here
+        # Simulating a successful API call
+        print(f"Sending invoice data to API: {json.dumps(invoice_data)}")
+        return True

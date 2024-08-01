@@ -24,6 +24,7 @@ class Buchung(models.Model):
     end_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    total_commission = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.booking_number} - {self.campingplatz.name}"
@@ -34,12 +35,15 @@ class Buchung(models.Model):
     def mark_as_billed(self):
         self.abrechnungsstatus = 'abgerechnet'
         self.save()
-        # ADD LOGGING
-        #For this purpose, the changed values, the date and the operator are saved.
 
     def apply_credit(self):
         self.abrechnungsstatus = 'gutgeschrieben'
         self.save()
+
+    def save(self, *args, **kwargs):
+        if self.commission_rate is not None and self.price is not None:
+            self.total_commission = (self.price * self.commission_rate) / 100 
+        super(Buchung, self).save(*args, **kwargs)
 
 
 class ChangeLog(models.Model):

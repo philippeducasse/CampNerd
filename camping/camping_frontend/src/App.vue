@@ -1,22 +1,28 @@
 <template>
   <div id="app">
-    <BillingView />
-    <BookingList />
+    <NavBar></NavBar>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import BillingView from './components/BillingView.vue';
-import BookingList from './components/BookingList.vue';
+import NavBar from './components/NavBar.vue';
 
 export default {
   name: 'App',
   components: {
-    BillingView,
-    BookingList
+    NavBar
   },
-};
+}
 </script>
 
 <style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
 </style>
