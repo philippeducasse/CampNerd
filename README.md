@@ -1,6 +1,17 @@
 # Instructions
 
+root folder: 
+```
+pip install -r requirements.txt
 venv\Scripts\activate
+cd camping
+python manage.py populate_data
+python manage.py runserver
+cd camping/camping_frontend
+npm install
+npm run serve
+```
+Run on browser on port 8080
 
 # You are tasked with creating a basic test project in Django to facilitate automated invoice generation for a channel manager. The goal is to streamline the billing process for bookings, specifically for camping sites. Here are the detailed requirements:
 
