@@ -14,8 +14,8 @@
       <input type="date" v-model="endDate" id="end_date" required>
       <button type="submit">Go to Booking View</button>
     </form>
+    <button @click="goToAllBookings">Show all Bookings</button>
   </div>
-  <button @click="goToAllBookings">Show all Bookings</button>
 </template>
 
 <script>
@@ -39,7 +39,7 @@ export default {
         .then(data => {
           if(data.length === 0){
             console.log('No camping sites found');
-          }else {
+          } else {
             this.campingSites = data;
           }
         })
@@ -47,34 +47,20 @@ export default {
           console.error('Error fetching camping sites:', error);
         });
     },
-    fetchAllBookings() {
-      fetch('/api/bookings')
-        .then(response => response.json())
-        .then(data => {
-          this.bookings = data;
-          this.$router.push({
-        path: '/bookings',
-      });
-        })
-        .catch(error => {
-          console.error('There was a problem with the fetch operation:', error);
-        });
-    },
     goToBookingView() {
-      let path = '/bookings';
       const query = {};
       if (this.campingSite) query.camping_site = this.campingSite;
       if (this.startDate) query.start_date = this.startDate;
       if (this.endDate) query.end_date = this.endDate;
 
       this.$router.push({
-        path: path,
+        path: '/bookings',
         query: query
       });
     },
     goToAllBookings() {
-      this.$router.push('/bookings');
-    },
+    this.$router.push('/bookings');
+  },
   }
 };
 </script>

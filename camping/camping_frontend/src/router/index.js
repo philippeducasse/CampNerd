@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import StartPageView from '../components/StartPageView.vue';
-import BillingView from '../components/BillingView.vue';
 import BookingListView from '../components/BookingListView.vue';
 import InvoiceView from '../components/InvoiceView.vue';
+import LogsPage from '../components/LogsPage.vue';
 
 const routes = [
   {
@@ -11,19 +11,19 @@ const routes = [
     component: StartPageView
   },
   {
-    path: '/billing',
-    name: 'BillingView',
-    component: BillingView
-  },
-  {
     path: '/bookings',
     name: 'BookingListView',
     component: BookingListView
   },
   {
-    path: '/invoice',
+    path: '/invoices',  // Ensure consistent path
     name: 'InvoiceView',
     component: InvoiceView
+  },
+  {
+    path: '/logs',
+    name: 'LogsPage',
+    component: LogsPage
   }
 ];
 

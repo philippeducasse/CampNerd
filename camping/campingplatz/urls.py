@@ -16,4 +16,5 @@ urlpatterns = [
     path('create_credits/', views.CreateCreditsView.as_view(), name='create_credits'),
     path('unsent_invoices/', views.UnsentInvoicesView.as_view(), name='unsent_invoices'),
     path('send_invoice/<int:pk>/', views.SendInvoiceView.as_view(), name='send_invoice'),
+    path('logs/', views.LogsView.as_view(), name='logs'),
 ]

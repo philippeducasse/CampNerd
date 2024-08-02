@@ -14,13 +14,18 @@ import random
 
 def log_change(user, booking, field_changed, old_value, new_value):
     ChangeLog.objects.create(
-        booking=booking,
         user=user,
+        booking=booking,
         field_changed=field_changed,
         old_value=old_value,
         new_value=new_value,
         date=datetime.now()
     )
+
+class LogsView(View):
+    def get(self, request):
+        logs = ChangeLog.objects.all().values('booking__booking_number', 'user', 'field_changed', 'old_value', 'new_value', 'date')
+        return JsonResponse(list(logs), safe=False)
 
 class BaseInvoiceView(View):
     def generate_invoice_data(self, booking):
@@ -176,15 +181,23 @@ class GenerateInvoicesView(BaseInvoiceView):
         data = json.loads(request.body)
         start_date = data.get('start_date')
         end_date = data.get('end_date')
-        
+        campingplatz_id = data.get('camping_site')
+
         try:
             start_date = datetime.strptime(start_date, '%Y-%m-%d')
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
         except ValueError:
             return JsonResponse({'error': 'Invalid date format'}, status=400)
 
-        bookings = Buchung.objects.filter(end_date__gte=start_date, end_date__lte=end_date, abrechnungsstatus='offen')
+        bookings = Buchung.objects.filter(
+            end_date__gte=start_date,
+            end_date__lte=end_date,
+            abrechnungsstatus='offen'
+        )
         
+        if campingplatz_id:
+            bookings = bookings.filter(campingplatz_id=campingplatz_id)
+
         invoices = []
         for booking in bookings:
             invoice_data = self.generate_invoice_data(booking)
@@ -193,7 +206,7 @@ class GenerateInvoicesView(BaseInvoiceView):
                 booking.abrechnungsstatus = 'abgerechnet'
                 booking.save()
                 invoices.append(invoice_data)
-        
+
         return JsonResponse({'status': 'success', 'message': 'Invoices generated successfully', 'invoices': invoices})
 
 class CreateCreditsView(View):
