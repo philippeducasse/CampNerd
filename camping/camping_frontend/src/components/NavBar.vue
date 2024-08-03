@@ -8,13 +8,12 @@
         <li><router-link to="/logs">Logs</router-link></li>
       </ul>
     </nav>
-    <router-view></router-view>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'NavBar'
 }
 </script>
 

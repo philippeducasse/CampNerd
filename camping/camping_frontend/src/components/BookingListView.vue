@@ -1,6 +1,13 @@
 <template>
   <div>
     <h1>Booking View</h1>
+    <div>
+      <button v-if="!selectedCampingSite || selectedCampingSite !== 'Campingplatz 1'" @click="filterBookings('Campingplatz 1')">Campingplatz 1</button>
+      <button v-if="!selectedCampingSite || selectedCampingSite !== 'Campingplatz 2'" @click="filterBookings('Campingplatz 2')">Campingplatz 2</button>
+      <button v-if="!selectedCampingSite || selectedCampingSite !== 'Campingplatz 3'" @click="filterBookings('Campingplatz 3')">Campingplatz 3</button>
+      <button v-if="selectedCampingSite" @click="showAllBookings">Show All Bookings</button>
+    </div>
+
     <p v-if="!campingSite && !startDate && !endDate">Showing all bookings</p>
     <p v-else>
       Showing bookings for: {{ campingSite?.name }}
@@ -21,9 +28,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="booking in bookings" :key="booking.id">
+        <tr v-for="booking in filteredBookings" :key="booking.id">
           <td>{{ booking.booking_number }}</td>
-          <td>{{ booking.campingplatz_id }}</td>
+          <td>{{ booking.campingplatz.name }}</td>
           <td>{{ booking.status }}</td>
           <td>{{ booking.abrechnungsstatus }}</td>
           <td>{{ booking.price }}</td>
@@ -100,7 +107,18 @@ export default {
       startDate: "",
       endDate: "",
       outgoingInvoices: [],
+      selectedCampingSite: null,
     };
+  },
+  computed: {
+    filteredBookings() {
+      if (this.selectedCampingSite) {
+        return this.bookings.filter(
+          (booking) => booking.campingplatz.name === this.selectedCampingSite
+        );
+      }
+      return this.bookings;
+    },
   },
   created() {
     this.fetchQueryParams();
@@ -136,10 +154,17 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           this.bookings = data;
+          this.selectedCampingSite = null;
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
         });
+    },
+    filterBookings(campingSiteName) {
+      this.selectedCampingSite = campingSiteName;
+    },
+    showAllBookings() {
+      this.selectedCampingSite = null;
     },
     updateCommissionRate(id, rate) {
       fetch(`/api/bookings/${id}/update_commission_rate/`, {

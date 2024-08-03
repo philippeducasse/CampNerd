@@ -16,7 +16,7 @@ const routes = [
     component: BookingListView
   },
   {
-    path: '/invoices',  // Ensure consistent path
+    path: '/invoices',  
     name: 'InvoiceView',
     component: InvoiceView
   },

@@ -17,7 +17,7 @@
           <td>{{ log.old_value }}</td>
           <td>{{ log.new_value }}</td>
           <td>{{ log.date }}</td>
-          <td>{{ log.user__username }}</td>
+          <td>{{ log.user }}</td>
         </tr>
       </tbody>
     </table>

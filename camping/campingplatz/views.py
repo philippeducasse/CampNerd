@@ -11,6 +11,8 @@ from decimal import Decimal
 from .models import Campingplatz
 from buchung.models import Buchung, ChangeLog
 import random
+from rest_framework.views import APIView
+from camping.serializer import BuchungSerializer
 
 def log_change(user, booking, field_changed, old_value, new_value):
     ChangeLog.objects.create(
@@ -44,7 +46,7 @@ class BaseInvoiceView(View):
         print(f"Sending invoice data to API: {json.dumps(invoice_data)}")
         return True
 
-class BookingListView(View):
+class BookingListView(APIView):
     def get(self, request):
         camping_site_id = request.GET.get('camping_site')
         start_date = request.GET.get('start_date')
@@ -64,14 +66,16 @@ class BookingListView(View):
                 campingplatz_id=camping_site_id,
                 start_date__gte=start_date,
                 end_date__lte=end_date
-            ).values()
+            ).select_related('campingplatz')
         else:
-            bookings = Buchung.objects.all().values()
+            bookings = Buchung.objects.select_related('campingplatz').all()
+
+        serializer = BuchungSerializer(bookings, many=True)
 
         # Log the number of bookings found
-        print(f"Found {len(bookings)} bookings")
+        print(f"Found {len(serializer.data)} bookings")
 
-        return JsonResponse(list(bookings), safe=False)
+        return JsonResponse(serializer.data, safe=False)
 
 @require_http_methods(["POST"])
 #@login_required
