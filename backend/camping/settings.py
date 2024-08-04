@@ -15,7 +15,7 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-STATIC_ROOT = os.path.join(BASE_DIR, 'camping', 'static')  # Add this line
+STATIC_ROOT = os.path.join(BASE_DIR, 'backend', 'static')
 
 
 # Quick-start development settings - unsuitable for production
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'campingplatz',
     'buchung',
+    'camping',
     #'corsheaders',
 ]
 
@@ -61,7 +62,7 @@ ROOT_URLCONF = 'camping.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'camping', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'backend', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,7 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'camping', 'camping_frontend', 'dist')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend', 'dist')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

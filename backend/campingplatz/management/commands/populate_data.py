@@ -29,7 +29,7 @@ class Command(BaseCommand):
             camping_site = random.choice(camp_sites)
             Buchung.objects.create(
                 booking_number=f'B24-{i+1:03}',
-                campingplatz=Campingplatz.name,
+                campingplatz= camping_site,
                 status='offen',
                 abrechnungsstatus='offen',
                 commission_rate=random.uniform(1.0, 5.0),

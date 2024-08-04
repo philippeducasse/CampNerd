@@ -1,0 +1,7 @@
+venv
+chart.pdf
+instructions.pdf
+node_modules
+**db.sqlite3
+db.sqlite3
+**__pycache__
