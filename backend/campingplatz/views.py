@@ -42,7 +42,6 @@ class BaseInvoiceView(View):
         }
 
     def send_invoice_to_api(self, invoice_data):
-        # Implement the actual API call to the billing software here
         print(f"Sending invoice data to API: {json.dumps(invoice_data)}")
         return True
 
@@ -52,7 +51,6 @@ class BookingListView(APIView):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
-        # Log the received parameters
         print(f"Received parameters: camping_site_id={camping_site_id}, start_date={start_date}, end_date={end_date}")
 
         if camping_site_id and start_date and end_date:
@@ -72,7 +70,6 @@ class BookingListView(APIView):
 
         serializer = BuchungSerializer(bookings, many=True)
 
-        # Log the number of bookings found
         print(f"Found {len(serializer.data)} bookings")
 
         return JsonResponse(serializer.data, safe=False)
@@ -148,8 +145,7 @@ class BillingView(BaseInvoiceView):
                     'booking_id': booking.id,
                     'amount': booking.total_commission
                 })
-        # Here you would send billing_items to the invoicing API
-        # For now, let's just simulate success
+        # SIMULATION
         if self.send_invoice_to_api(billing_items):
             for booking in bookings:
                 if booking.abrechnungsstatus == 'offen':
@@ -161,7 +157,6 @@ class BillingView(BaseInvoiceView):
         return JsonResponse({'status': 'error', 'message': 'Billing failed'})
 
     def get_commission_rate(self, booking):
-        # Implement your logic to determine the commission rate
         return random.uniform(0.01, 0.05)  # For example purposes
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -218,16 +213,14 @@ class CreateCreditsView(View):
         bookings = Buchung.objects.filter(abrechnungsstatus='gutschreiben')
         
         for booking in bookings:
-            booking.abrechnungsstatus = 'gutschreiben'  # Set the status to credited
+            booking.abrechnungsstatus = 'gutschreiben'
             booking.save()
         
         return JsonResponse({'status': 'success', 'message': 'Credits created successfully'})
 
 class UnsentInvoicesView(View):
     def get(self, request):
-        # Fetch invoices that were created but not sent
         unsent_invoices = []
-        # Logic to get unsent invoices from your system
         return JsonResponse({'invoices': unsent_invoices})
 
 class SendInvoiceView(BaseInvoiceView):
